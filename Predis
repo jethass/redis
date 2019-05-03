@@ -1,0 +1,34 @@
+<?php
+
+require 'Predis/Autoloader.php';
+Predis\Autoloader::register();
+
+$time = microtime(true);
+$n=0;
+$redis = new Predis\Client(['host' => '127.0.0.1', 'port' => 6379], ['connections' => ['tcp' => 'Predis\\Connection\\PhpiredisSocketConnection']]);
+//$redis = new Predis\Client(['host' => '127.0.0.1', 'port' => 6379], ['connections' => ['tcp' => 'Predis\\Connection\\PhpiredisStreamConnection']]);
+//$redis = new Predis\Client(['host' => '127.0.0.1', 'port' => 6379]);
+printf("Using : %s\n", get_class($redis->getConnection()));
+
+if ($_SERVER['argc'] > 1 && is_numeric($_SERVER['argv'][1])) {
+ for ($i=1; $i<=$_SERVER['argv'][1] ; $i++) {
+    $redis->set("foo".($i&0xff), $i);
+    $v = $redis->get("foo".($i&0xff));
+    if ($v != $i) echo "** $i => $v\n";
+  }
+} else if ($_SERVER['argc'] > 1) {
+	$n=0;
+	foreach (glob($_SERVER['argv'][1]) as $file) {
+		$data = file_get_contents($file);
+		$redis->set("foo$n", $data);
+		$v = $redis->strlen("foo$n");
+		if ($v != ($i=strlen($data))) echo "** $i != $v\n";
+		$n++;
+	}
+	echo "$n files\n";
+} else {
+	printf("Value = %d\n", $redis->incr("foo"));
+}
+
+$time = microtime(true)-$time;
+printf("Done in %.6f\n", $time);
