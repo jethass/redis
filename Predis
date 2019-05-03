@@ -1,4 +1,20 @@
 <?php
+require "predis/autoload.php";
+Predis\Autoloader::register();
+try {
+   $redis = new Predis\Client();
+   $redis->set("hello_world", "Hi from php!");
+$value = $redis->get("hello_world");
+var_dump($value);
+}
+catch (Exception $e) {
+   echo "Couldn't connect to Redis";
+   echo $e->getMessage();
+}?>
+
+-------------------------------------------------------------------------------------
+
+<?php
 
 require 'Predis/Autoloader.php';
 Predis\Autoloader::register();
